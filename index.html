@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="吃什麼">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#764ba2">
+  <title>ㄟ 想要吃什麼?</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', '微軟正黑體', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+    }
+
+    h1 {
+      text-align: center;
+      color: white;
+      font-size: 2rem;
+      margin-bottom: 6px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .subtitle {
+      text-align: center;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 22px;
+      max-width: 700px;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── 隨機大按鈕 ── */
+    .btn-random-all {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto 16px;
+      padding: 18px;
+      background: white;
+      color: #764ba2;
+      border: 3px solid white;
+      border-radius: 20px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      transition: all 0.2s;
+    }
+    .btn-random-all:hover { background: #f5f0ff; transform: translateY(-2px); }
+    .btn-random-all .big-dice { font-size: 1.8rem; }
+
+    /* ── 分隔線 ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 700px;
+      margin: 0 auto 16px;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.4);
+    }
+
+    /* ── 種類格子 ── */
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .category-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 8px;
+      border: 2.5px solid #e0e0e0;
+      border-radius: 14px;
+      background: #fafafa;
+      cursor: pointer;
+      transition: all 0.18s;
+      user-select: none;
+      position: relative;
+    }
+    .category-btn:hover { border-color: #764ba2; background: #f5f0ff; transform: translateY(-2px); }
+    .category-btn.selected {
+      border-color: #764ba2;
+      background: linear-gradient(135deg, #f0e6ff, #e6d5ff);
+      box-shadow: 0 4px 12px rgba(118,75,162,0.25);
+    }
+    .category-btn.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 5px; right: 8px;
+      font-size: 0.75rem;
+      color: #764ba2;
+      font-weight: 700;
+    }
+    .category-btn .icon { font-size: 1.7rem; }
+    .category-btn .label { font-size: 0.8rem; font-weight: 600; color: #333; }
+
+    /* ── 篩選chip ── */
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 30px;
+      background: #fafafa;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #555;
+      font-weight: 600;
+      transition: all 0.18s;
+      user-select: none;
+    }
+    .chip:hover { border-color: #764ba2; background: #f5f0ff; }
+    .chip.active { border-color: #764ba2; background: #f0e6ff; color: #764ba2; }
+
+    /* ── 決定按鈕 ── */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      max-width: 700px;
+      margin: 0 auto 16px;
+    }
+    .btn-decide {
+      flex: 1;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(118,75,162,0.4);
+    }
+    .btn-decide:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(118,75,162,0.5); }
+    .btn-decide:active { transform: translateY(0); }
+
+    .btn-clear {
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-clear:hover { background: rgba(255,255,255,0.3); }
+
+    /* ── 結果卡 ── */
+    #result {
+      display: none;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    #result.show {
+      display: block;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      margin-bottom: 12px;
+    }
+
+    .result-header {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    .restaurant-name {
+      text-align: center;
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: #4a2080;
+      margin-bottom: 3px;
+      line-height: 1.2;
+    }
+    .restaurant-category {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #aaa;
+      margin-bottom: 18px;
+    }
+
+    .info-grid {
+      background: #f7f3ff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .info-row {
+      display: flex;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: #555;
+      align-items: flex-start;
+    }
+    .info-icon { min-width: 18px; font-size: 1rem; }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .tag {
+      background: #ede8f7;
+      color: #764ba2;
+      border-radius: 20px;
+      padding: 3px 11px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-reroll {
+      flex: 1;
+      padding: 13px;
+      background: white;
+      color: #764ba2;
+      border: 2.5px solid #764ba2;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-reroll:hover { background: #f5f0ff; }
+    .btn-confirm {
+      flex: 1;
+      padding: 13px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-confirm:hover { opacity: 0.9; }
+
+    /* ── 同類其他選項 ── */
+    .others-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .others-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .other-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 4px;
+    }
+    .other-item:last-child { margin-bottom: 0; }
+    .other-item:hover { background: #f5f0ff; }
+    .other-item-name { font-size: 0.9rem; font-weight: 600; color: #333; }
+    .other-item-price { font-size: 0.78rem; color: #aaa; }
+    .other-item-arrow { color: #ccc; font-size: 0.8rem; }
+
+    /* ── 決定了！畫面 ── */
+    #confirmed {
+      display: none;
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+    #confirmed.show { display: block; animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .confirmed-emoji { font-size: 3rem; margin-bottom: 8px; }
+    .confirmed-text { font-size: 1.1rem; color: white; font-weight: 700; text-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    .confirmed-sub { font-size: 0.85rem; color: rgba(255,255,255,0.75); margin-top: 4px; }
+    .btn-restart {
+      margin-top: 16px;
+      padding: 10px 24px;
+      background: white;
+      color: #764ba2;
+      border: none;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-restart:hover { transform: scale(1.05); }
+
+    /* ── 候選數量提示 ── */
+    .count-hint {
+      font-size: 0.78rem;
+      color: #bbb;
+      margin-top: 10px;
+      text-align: right;
+    }
+    .count-hint span { color: #764ba2; font-weight: 700; }
+
+    /* ── 管理按鈕 ── */
+    .btn-manage {
+      display: block;
+      max-width: 700px;
+      margin: 0 auto 16px;
+      padding: 12px;
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.85);
+      border: 1.5px solid rgba(255,255,255,0.35);
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .btn-manage:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      padding: 20px 16px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid #eee;
+    }
+    .modal-header h3 { font-size: 1.05rem; color: #333; }
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #999;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .btn-close:hover { color: #444; }
+
+    /* ── Modal Tabs ── */
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid #eee;
+    }
+    .modal-tab {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #aaa;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .modal-tab.active { color: #764ba2; border-bottom-color: #764ba2; }
+    .modal-body { padding: 20px 22px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ── 新增表單 ── */
+    .form-row { margin-bottom: 14px; }
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #333;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .form-input:focus { outline: none; border-color: #764ba2; }
+    .cat-checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .cat-check-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .cat-check-label:has(input:checked) { border-color: #764ba2; background: #f0e6ff; color: #764ba2; font-weight: 600; }
+    .cat-check-label input { display: none; }
+    .form-checkrow {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .form-check-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      color: #555;
+      cursor: pointer;
+    }
+    .form-check-label input { accent-color: #764ba2; cursor: pointer; }
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: opacity 0.2s;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+
+    /* ── 店家列表 ── */
+    .manage-list { display: flex; flex-direction: column; gap: 8px; }
+    .manage-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #fafafa;
+      border: 1.5px solid #eee;
+    }
+    .manage-item.user-added { border-color: #c9b6f0; background: #faf6ff; }
+    .manage-item-info { flex: 1; min-width: 0; }
+    .manage-item-name { font-size: 0.9rem; font-weight: 700; color: #333; }
+    .manage-item-meta { font-size: 0.75rem; color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .manage-item-badge {
+      font-size: 0.7rem;
+      background: #764ba2;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 7px;
+      white-space: nowrap;
+    }
+    .btn-delete {
+      background: none;
+      border: 1.5px solid #ffcdd2;
+      border-radius: 8px;
+      color: #e57373;
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .btn-delete:hover { background: #ffebee; border-color: #e57373; }
+    .manage-search {
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>ㄟ 想要吃什麼?</h1>
+
+<!-- 完全不知道 → 隨機全部 -->
+<button class="btn-random-all" onclick="decideAll()">
+  <span class="big-dice">🎲</span>
+  <span>完全不知道，幫我隨便選！</span>
+</button>
+
+<div class="divider">或者，選一個想吃的類型</div>
+
+<!-- 選類型 -->
+<div class="card">
+  <div class="card-title">想吃什麼類型？（可多選）</div>
+  <div class="categories" id="categories"></div>
+  <div class="count-hint" id="count-hint"></div>
+</div>
+
+<!-- 篩選 -->
+<div class="card">
+  <div class="card-title">限制條件</div>
+  <div class="filter-chips">
+    <div class="chip" id="chip-cheap"   onclick="toggleChip('cheap')"  >💰 便宜（&lt;100元）</div>
+<div class="chip" id="chip-night"   onclick="toggleChip('night')"  >🌙 宵夜時段</div>
+  </div>
+</div>
+
+<!-- 按鈕列 -->
+<div class="action-row">
+  <button class="btn-decide" onclick="decide()">幫我決定！🎯</button>
+  <button class="btn-clear"  onclick="clearAll()">重置</button>
+</div>
+
+<!-- 結果區 -->
+<div id="result">
+  <div class="result-card">
+    <p class="result-header" id="res-header">今天就吃這家吧 👇</p>
+    <div class="restaurant-name" id="res-name"></div>
+    <div class="restaurant-category" id="res-category"></div>
+    <div class="info-grid">
+      <div class="info-row"><span class="info-icon">📍</span><span id="res-location"></span></div>
+      <div class="info-row"><span class="info-icon">💰</span><span id="res-price"></span></div>
+      <div class="info-row"><span class="info-icon">⏰</span><span id="res-hours"></span></div>
+      <div class="info-row"><span class="info-icon">💬</span><span id="res-note"></span></div>
+    </div>
+    <div class="tag-list" id="res-tags"></div>
+    <div class="result-actions">
+      <button class="btn-reroll"   onclick="reroll()">不要這家 🔄</button>
+      <button class="btn-confirm"  onclick="confirm()">就決定是你了！✅</button>
+    </div>
+  </div>
+
+  <!-- 同類其他選項 -->
+  <div class="others-card" id="others-card" style="display:none">
+    <div class="others-title" id="others-title">同類型的其他選項</div>
+    <div id="others-list"></div>
+  </div>
+</div>
+
+<!-- 管理店家按鈕 -->
+<button class="btn-manage" onclick="openModal()">✏️ 管理店家（新增 / 刪除）</button>
+
+<!-- 管理 Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>管理店家</h3>
+      <button class="btn-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('add')">＋ 新增店家</button>
+      <button class="modal-tab" onclick="switchTab('list')">📋 店家列表</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 新增 tab -->
+      <div class="tab-pane active" id="tab-add">
+        <div class="form-row">
+          <label class="form-label">店名 *</label>
+          <input class="form-input" id="f-name" placeholder="例：某某麵館">
+        </div>
+        <div class="form-row">
+          <label class="form-label">類型 *</label>
+          <div class="cat-checkboxes" id="f-cats"></div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">位置</label>
+          <input class="form-input" id="f-location" placeholder="例：宵夜街（五興路）">
+        </div>
+        <div class="form-row">
+          <label class="form-label">價位</label>
+          <input class="form-input" id="f-price" placeholder="例：約 80–150 元">
+        </div>
+        <div class="form-row">
+          <label class="form-label">營業時間</label>
+          <input class="form-input" id="f-hours" placeholder="例：11:00–21:00">
+        </div>
+        <div class="form-row">
+          <label class="form-label">備註</label>
+          <input class="form-input" id="f-note" placeholder="推薦原因或必點菜色">
+        </div>
+        <div class="form-row">
+          <label class="form-label">標籤</label>
+          <div class="form-checkrow">
+            <label class="form-check-label"><input type="checkbox" id="f-cheap"> 便宜（&lt;100元）</label>
+            <label class="form-check-label"><input type="checkbox" id="f-night"> 宵夜時段</label>
+          </div>
+        </div>
+        <button class="btn-submit" onclick="submitAdd()">新增店家</button>
+      </div>
+
+      <!-- 列表 tab -->
+      <div class="tab-pane" id="tab-list">
+        <div class="manage-search">
+          <input class="form-input" id="manage-search" oninput="renderManageList()" placeholder="🔍 搜尋店名...">
+        </div>
+        <div class="manage-list" id="manage-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 確認畫面 -->
+<div id="confirmed">
+  <div class="confirmed-emoji">🎉</div>
+  <div class="confirmed-text" id="confirmed-name"></div>
+  <div class="confirmed-sub">出發吧！</div>
+  <button class="btn-restart" onclick="restart()">重新選</button>
+</div>
+
+<script>
+const categories = [
+  { id: "便當",   icon: "🍱", label: "便當" },
+  { id: "麵食",   icon: "🍜", label: "麵食" },
+  { id: "早午餐", icon: "🥚", label: "早午餐" },
+  { id: "西式",   icon: "🍔", label: "西式" },
+  { id: "飲料",   icon: "🧋", label: "飲料" },
+  { id: "炸物",   icon: "🍗", label: "炸物" },
+  { id: "日式",   icon: "🍣", label: "日式" },
+  { id: "滷味",   icon: "🍢", label: "滷味" },
+  { id: "火鍋",   icon: "🍲", label: "火鍋" },
+  { id: "韓式",   icon: "🥘", label: "韓式" },
+];
+
+const restaurants = [
+  {
+    name: "比大爺滷味",
+    category: ["滷味"],
+    location: "宵夜街（五興路）",
+    price: "約 50–120 元",
+    hours: "傍晚~深夜",
+    note: "自選食材，滷汁超入味，必點豆腐跟貢丸",
+    tags: ["便宜", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "大學城滷味",
+    category: ["滷味"],
+    location: "中大商圈附近",
+    price: "約 60–150 元",
+    hours: "下午~深夜",
+    note: "份量大，適合多人分食",
+    tags: ["便宜", "宵夜"],
+    cheap: true, quick: false, night: true
+  },
+  {
+    name: "八方雲集",
+    category: ["麵食", "便當"],
+    location: "後門（中央路）",
+    price: "約 50–90 元",
+    hours: "早上~晚上",
+    note: "鍋貼水餃超推，便宜又飽足",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "清心福全",
+    category: ["飲料"],
+    location: "中大商圈",
+    price: "約 35–65 元",
+    hours: "早上~深夜",
+    note: "奶茶、仙草系列都很穩定好喝",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  // ── 宵夜街 ──
+  {
+    name: "無敵蛋餅",
+    category: ["早午餐"],
+    location: "宵夜街（五興路）",
+    price: "約 75 元",
+    hours: "22:00–隔日12:00（六休）",
+    note: "深夜早餐店，份量驚人，宵夜覓食必選",
+    tags: ["便宜", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "粥王",
+    category: ["麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 50–90 元",
+    hours: "傍晚~深夜",
+    note: "宵夜粥品，暖胃好選擇",
+    tags: ["便宜", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "一品鍋",
+    category: ["火鍋"],
+    location: "宵夜街（五興路）",
+    price: "約 100–180 元",
+    hours: "傍晚~深夜",
+    note: "個人小火鍋，宵夜吃鍋首選",
+    tags: ["宵夜"],
+    cheap: false, quick: false, night: true
+  },
+  {
+    name: "霸王鹹酥雞",
+    category: ["炸物"],
+    location: "宵夜街（五興路）",
+    price: "約 50–120 元",
+    hours: "傍晚~深夜",
+    note: "宵夜街鹹酥雞，炸物種類多",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "餐車鹹酥雞",
+    category: ["炸物"],
+    location: "宵夜街（五興路）",
+    price: "約 50–100 元",
+    hours: "傍晚~深夜",
+    note: "餐車形式，機動出沒宵夜街",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "雞叔叔",
+    category: ["炸物", "便當"],
+    location: "宵夜街（五興路）",
+    price: "約 60–110 元",
+    hours: "傍晚~深夜",
+    note: "雞排炸物為主，份量實在",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "緣杏",
+    category: ["飲料"],
+    location: "宵夜街（五興路）",
+    price: "約 35–70 元",
+    hours: "白天~深夜",
+    note: "宵夜街飲料店，手搖飲選擇多",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "來來炒飯",
+    category: ["便當", "麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "傍晚~深夜",
+    note: "炒飯炒麵，快炒類宵夜好選擇",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "東東水餃",
+    category: ["麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 50–90 元",
+    hours: "傍晚~深夜",
+    note: "水餃、餛飩，簡單飽足",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "立橙飲料店",
+    category: ["飲料"],
+    location: "宵夜街（五興路）",
+    price: "約 35–65 元",
+    hours: "白天~深夜",
+    note: "宵夜街飲料，搭配宵夜必備",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "男子漢炸雞",
+    category: ["炸物"],
+    location: "宵夜街（五興路）",
+    price: "約 50–100 元",
+    hours: "傍晚~深夜",
+    note: "炸雞專賣，份量大",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "炸彈蔥油餅",
+    category: ["早午餐", "炸物"],
+    location: "宵夜街（五興路）",
+    price: "約 40–70 元",
+    hours: "傍晚~深夜",
+    note: "蔥油餅加料炸好吃，宵夜必嗑",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "夏克堤",
+    category: ["飲料"],
+    location: "宵夜街（五興路）",
+    price: "約 50–90 元",
+    hours: "白天~深夜",
+    note: "飲料選擇多樣",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "影印店豆花",
+    category: ["飲料"],
+    location: "宵夜街（五興路）",
+    price: "約 30–60 元",
+    hours: "傍晚~深夜",
+    note: "中大知名豆花，綿密好吃",
+    tags: ["便宜", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "咖哩老師",
+    category: ["日式", "便當"],
+    location: "宵夜街（五興路）",
+    price: "約 70–110 元",
+    hours: "11:30–14:00、16:30–19:30",
+    note: "日式咖哩蛋包飯，配料可自選，咖哩偏甜帶番茄風味",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "楊滇風",
+    category: ["麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "傍晚~深夜",
+    note: "雲南/滇式風味，特色麵食",
+    tags: ["便宜", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "協力炸雞",
+    category: ["炸物"],
+    location: "宵夜街（五興路）",
+    price: "約 50–100 元",
+    hours: "傍晚~深夜",
+    note: "炸雞炸物，宵夜街老攤",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "美而美",
+    category: ["早午餐"],
+    location: "宵夜街（五興路）",
+    price: "約 40–80 元",
+    hours: "早上~中午",
+    note: "傳統台式早餐，蛋餅土司一應俱全",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "喜樂早餐店",
+    category: ["早午餐"],
+    location: "宵夜街（五興路）",
+    price: "約 40–80 元",
+    hours: "早上~中午",
+    note: "早餐選擇豐富",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "香煎小舖",
+    category: ["便當", "麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "午餐~晚餐",
+    note: "煎物為主，簡單美味",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "茶繪",
+    category: ["飲料"],
+    location: "宵夜街（五興路）",
+    price: "約 35–70 元",
+    hours: "白天~深夜",
+    note: "手搖茶飲",
+    tags: ["便宜", "快速", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "來客",
+    category: ["便當", "麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "午餐~晚餐",
+    note: "平價便當選擇",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "香城燒臘",
+    category: ["便當"],
+    location: "宵夜街（五興路）",
+    price: "約 70–120 元",
+    hours: "午餐~晚餐",
+    note: "港式燒臘，叉燒烤鴨飯香",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "main蛋",
+    category: ["早午餐"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "早上~下午",
+    note: "蛋料理為主的早午餐",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "麥味登",
+    category: ["早午餐"],
+    location: "宵夜街（五興路）",
+    price: "約 40–80 元",
+    hours: "早上~中午",
+    note: "連鎖早餐，品項穩定",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "滿食記",
+    category: ["便當", "麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "午餐~晚餐",
+    note: "平價正餐",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "翔食堂",
+    category: ["便當", "麵食"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "午餐~晚餐",
+    note: "食堂風格，選擇多樣",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "宵夜屋",
+    category: ["麵食", "便當"],
+    location: "宵夜街（五興路）",
+    price: "約 60–100 元",
+    hours: "傍晚~深夜",
+    note: "專做宵夜，深夜肚子餓的好選擇",
+    tags: ["便宜", "宵夜"],
+    cheap: true, quick: true, night: true
+  },
+  {
+    name: "夠義式",
+    category: ["西式"],
+    location: "宵夜街（五興路）",
+    price: "約 120–200 元",
+    hours: "午餐~晚餐",
+    note: "義大利麵燉飯，宵夜街少見的義式料理",
+    tags: [],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "馬爾波",
+    category: ["麵食", "火鍋"],
+    location: "宵夜街（五興路）",
+    price: "約 80–150 元",
+    hours: "傍晚~深夜",
+    note: "麻辣口味為主",
+    tags: ["宵夜"],
+    cheap: false, quick: false, night: true
+  },
+  // ── 後門 ──
+  {
+    name: "新福",
+    category: ["便當", "麵食"],
+    location: "後門（中央路）",
+    price: "約 60–100 元",
+    hours: "早上~晚上",
+    note: "後門便當選擇，平價實在",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "雙響丼",
+    category: ["日式"],
+    location: "後門（中央路）",
+    price: "約 90–150 元",
+    hours: "早上~晚上",
+    note: "丼飯選擇多，後門日式好選擇",
+    tags: ["快速"],
+    cheap: false, quick: true, night: false
+  },
+  {
+    name: "巧味香早餐",
+    category: ["早午餐"],
+    location: "後門（中央路）",
+    price: "約 40–80 元",
+    hours: "早上~中午",
+    note: "後門早餐選擇",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "滿分小舖",
+    category: ["便當", "麵食"],
+    location: "後門（中央路）",
+    price: "約 60–100 元",
+    hours: "午餐~晚餐",
+    note: "平價正餐",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "福泉豆花",
+    category: ["飲料"],
+    location: "後門（中央路）",
+    price: "約 30–60 元",
+    hours: "白天~晚上",
+    note: "豆花甜點，飯後必去",
+    tags: ["便宜"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "食間",
+    category: ["便當", "麵食"],
+    location: "後門（中央路）",
+    price: "約 80–150 元",
+    hours: "午餐~晚餐",
+    note: "後門質感餐廳",
+    tags: [],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "大嗑蔬菜蛋餅",
+    category: ["早午餐"],
+    location: "後門（中央路）",
+    price: "約 50–80 元",
+    hours: "早上~中午",
+    note: "蔬菜蛋餅為主，健康清爽",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "廚窗",
+    category: ["便當", "西式"],
+    location: "後門（中央路）",
+    price: "約 100–180 元",
+    hours: "午餐~晚餐",
+    note: "後門質感小店",
+    tags: [],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "迷路",
+    category: ["西式", "早午餐"],
+    location: "後門（中央路）",
+    price: "約 100–200 元",
+    hours: "早上~下午",
+    note: "後門早午餐選擇",
+    tags: [],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "阿米玲",
+    category: ["日式", "便當"],
+    location: "後門（中央路）",
+    price: "約 140–180 元",
+    hours: "11:00–14:00、17:00–20:00（六休）",
+    note: "日式炸物定食，白飯味噌湯免費續，cp值超高",
+    tags: ["快速"],
+    cheap: false, quick: true, night: false
+  },
+  {
+    name: "歐姆萊斯",
+    category: ["西式", "早午餐"],
+    location: "後門（中央路）",
+    price: "約 100–180 元",
+    hours: "早上~下午",
+    note: "歐姆蛋為主的早午餐",
+    tags: [],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "麥克小姐",
+    category: ["西式", "早午餐"],
+    location: "後門（中央路）",
+    price: "約 99–139 元",
+    hours: "11:00–13:30、17:00–19:30（日休）",
+    note: "手工漢堡人氣旺，幾乎座無虛席",
+    tags: ["快速"],
+    cheap: false, quick: true, night: false
+  },
+  {
+    name: "花路食鍋拌飯",
+    category: ["韓式"],
+    location: "後門（中央路）",
+    price: "約 100–180 元",
+    hours: "午餐~晚餐",
+    note: "韓式鍋拌飯，石鍋香脆鍋巴好吃",
+    tags: ["快速"],
+    cheap: false, quick: true, night: false
+  },
+  {
+    name: "萊客堡",
+    category: ["西式"],
+    location: "後門（中央路）",
+    price: "約 80–150 元",
+    hours: "早上~晚上",
+    note: "漢堡炸物，快速解決一餐",
+    tags: ["快速"],
+    cheap: false, quick: true, night: false
+  },
+  {
+    name: "白鬍子牛排",
+    category: ["西式"],
+    location: "後門（中央路）",
+    price: "約 150–250 元",
+    hours: "11:00–20:40",
+    note: "平價牛排套餐，牛排+湯+沙拉+飲料一整套",
+    tags: ["聚餐"],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "熊屋拉麵",
+    category: ["麵食", "日式"],
+    location: "後門（中央路）",
+    price: "約 120–180 元",
+    hours: "午餐~晚餐",
+    note: "後門拉麵，湯頭濃郁",
+    tags: [],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "惟客美而美",
+    category: ["早午餐"],
+    location: "後門（中央路）",
+    price: "約 40–80 元",
+    hours: "早上~中午",
+    note: "台式早餐，品項齊全",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "萊姆絲早午餐",
+    category: ["早午餐"],
+    location: "後門（中央路）",
+    price: "約 80–160 元",
+    hours: "早上~下午",
+    note: "後門早午餐，選擇豐富",
+    tags: [],
+    cheap: false, quick: false, night: false
+  },
+  {
+    name: "八哥重慶酸辣粉",
+    category: ["麵食"],
+    location: "後門（中央路）",
+    price: "約 70–110 元",
+    hours: "午餐~晚餐",
+    note: "重慶酸辣粉，麻辣夠勁",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "竹香快餐",
+    category: ["便當"],
+    location: "後門（中央路）",
+    price: "約 60–90 元",
+    hours: "11:00–14:00、17:00–19:30",
+    note: "快餐便當，簡單實在",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+  {
+    name: "樂活堡",
+    category: ["西式"],
+    location: "後門（中央路）",
+    price: "約 80–150 元",
+    hours: "早上~晚上",
+    note: "漢堡輕食",
+    tags: ["快速"],
+    cheap: false, quick: true, night: false
+  },
+  {
+    name: "家香",
+    category: ["便當", "麵食"],
+    location: "後門（中央路）",
+    price: "約 60–100 元",
+    hours: "午餐~晚餐",
+    note: "家常口味，吃起來像在家",
+    tags: ["便宜", "快速"],
+    cheap: true, quick: true, night: false
+  },
+];
+
+// ── 狀態 ──
+let selectedCategories = new Set();
+let activeFilters = new Set();   // 'cheap' | 'quick' | 'night'
+let lastCandidates = [];
+let shownHistory = [];           // 避免短時間重複
+
+// ── 建立種類按鈕 ──
+const catContainer = document.getElementById("categories");
+categories.forEach(cat => {
+  const btn = document.createElement("div");
+  btn.className = "category-btn";
+  btn.id = "cat-" + cat.id;
+  btn.innerHTML = `<span class="icon">${cat.icon}</span><span class="label">${cat.label}</span>`;
+  btn.onclick = () => toggleCat(cat.id, btn);
+  catContainer.appendChild(btn);
+});
+
+function toggleCat(id, btn) {
+  if (selectedCategories.has(id)) {
+    selectedCategories.delete(id);
+    btn.classList.remove("selected");
+  } else {
+    selectedCategories.add(id);
+    btn.classList.add("selected");
+  }
+  updateCountHint();
+}
+
+function toggleChip(key) {
+  const chip = document.getElementById("chip-" + key);
+  if (activeFilters.has(key)) {
+    activeFilters.delete(key);
+    chip.classList.remove("active");
+  } else {
+    activeFilters.add(key);
+    chip.classList.add("active");
+  }
+  updateCountHint();
+}
+
+function updateCountHint() {
+  const n = getCandidates().length;
+  const hint = document.getElementById("count-hint");
+  if (selectedCategories.size === 0 && activeFilters.size === 0) {
+    hint.innerHTML = "";
+    return;
+  }
+  hint.innerHTML = `符合條件的餐廳：<span>${n}</span> 家`;
+}
+
+function getCandidates() {
+  return restaurants.filter(r => {
+    const catMatch = selectedCategories.size === 0
+      || r.category.some(c => selectedCategories.has(c));
+    if (!catMatch) return false;
+    if (activeFilters.has("cheap") && !r.cheap) return false;
+    if (activeFilters.has("quick") && !r.quick) return false;
+    if (activeFilters.has("night") && !r.night) return false;
+    return true;
+  });
+}
+
+// 從候選清單中排除近期顯示過的
+function pickRandom(list, exclude) {
+  const avoid = new Set(exclude);
+  let pool = list.filter(r => !avoid.has(r.name));
+  if (pool.length === 0) pool = list; // 全都排除過就重置
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function decideAll() {
+  lastCandidates = [...restaurants];
+  shownHistory = [];
+  const picked = pickRandom(lastCandidates, []);
+  shownHistory.push(picked.name);
+  showRestaurant(picked, "🎲 隨機替你選的！");
+}
+
+function decide() {
+  lastCandidates = getCandidates();
+  shownHistory = [];
+  if (lastCandidates.length === 0) {
+    showEmpty();
+    return;
+  }
+  const picked = pickRandom(lastCandidates, []);
+  shownHistory.push(picked.name);
+  showRestaurant(picked, "今天就吃這家吧 👇");
+}
+
+function reroll() {
+  if (lastCandidates.length === 0) return;
+  const picked = pickRandom(lastCandidates, shownHistory);
+  shownHistory.push(picked.name);
+  if (shownHistory.length > Math.max(3, lastCandidates.length - 1)) {
+    shownHistory = shownHistory.slice(-2); // 保留最後2筆，讓舊的有機會出現
+  }
+  showRestaurant(picked, "換一家試試 🔄");
+}
+
+function confirm() {
+  const name = document.getElementById("res-name").textContent;
+  document.getElementById("result").classList.remove("show");
+  document.getElementById("result").style.display = "none";
+  document.getElementById("confirmed-name").textContent = "就決定吃「" + name + "」！";
+  const el = document.getElementById("confirmed");
+  el.style.display = "block";
+  el.classList.add("show");
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function restart() {
+  clearAll();
+  document.getElementById("confirmed").classList.remove("show");
+  document.getElementById("confirmed").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function clearAll() {
+  selectedCategories.clear();
+  activeFilters.clear();
+  document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("selected"));
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+  document.getElementById("count-hint").innerHTML = "";
+  hideResult();
+}
+
+function hideResult() {
+  const r = document.getElementById("result");
+  r.classList.remove("show");
+  r.style.display = "none";
+}
+
+function showEmpty() {
+  const r = document.getElementById("result");
+  r.style.display = "none";
+  void r.offsetWidth;
+  r.style.display = "block";
+  r.classList.add("show");
+  document.getElementById("res-header").textContent = "找不到符合的餐廳 😢";
+  document.getElementById("res-name").textContent = "放寬一下條件吧！";
+  document.getElementById("res-category").textContent = "";
+  document.getElementById("res-location").textContent = "";
+  document.getElementById("res-price").textContent = "";
+  document.getElementById("res-hours").textContent = "";
+  document.getElementById("res-note").textContent = "";
+  document.getElementById("res-tags").innerHTML = "";
+  document.getElementById("others-card").style.display = "none";
+}
+
+function showRestaurant(r, header) {
+  const resultEl = document.getElementById("result");
+  resultEl.classList.remove("show");
+  resultEl.style.display = "none";
+  void resultEl.offsetWidth;
+  resultEl.style.display = "block";
+  resultEl.classList.add("show");
+
+  document.getElementById("res-header").textContent = header;
+  document.getElementById("res-name").textContent = r.name;
+  document.getElementById("res-category").textContent = r.category.join(" · ");
+  const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' 中央大學 桃園')}`;
+  document.getElementById("res-location").innerHTML = `<a href="${mapUrl}" target="_blank" style="color:#764ba2;text-decoration:underline;text-underline-offset:3px;">${r.location} 📌</a>`;
+  document.getElementById("res-price").textContent = r.price;
+  document.getElementById("res-hours").textContent = r.hours;
+  document.getElementById("res-note").textContent = r.note;
+  document.getElementById("res-tags").innerHTML = r.tags.map(t => `<span class="tag">${t}</span>`).join("");
+
+  // 同類其他選項（同類型但不是當前這家）
+  const others = lastCandidates.filter(x => {
+    if (x.name === r.name) return false;
+    return x.category.some(c => r.category.includes(c));
+  }).slice(0, 4);
+
+  const othersCard = document.getElementById("others-card");
+  if (others.length > 0) {
+    document.getElementById("others-title").textContent =
+      `同類型還有 ${others.length} 個選項`;
+    document.getElementById("others-list").innerHTML = others.map(o =>
+      `<div class="other-item" onclick="pickThis('${o.name}')">
+        <span class="other-item-name">${o.name}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="other-item-price">${o.price}</span>
+          <span class="other-item-arrow">›</span>
+        </span>
+      </div>`
+    ).join("");
+    othersCard.style.display = "block";
+  } else {
+    othersCard.style.display = "none";
+  }
+
+  resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// 從同類其他選項直接點選
+function pickThis(name) {
+  const r = getEffectiveRestaurants().find(x => x.name === name);
+  if (!r) return;
+  shownHistory.push(name);
+  showRestaurant(r, "換成這家 👇");
+}
+
+// ── localStorage ──
+function loadUserData() {
+  try {
+    return {
+      added:   JSON.parse(localStorage.getItem('ncu_added')   || '[]'),
+      deleted: JSON.parse(localStorage.getItem('ncu_deleted') || '[]'),
+    };
+  } catch { return { added: [], deleted: [] }; }
+}
+function saveUserData(added, deleted) {
+  localStorage.setItem('ncu_added',   JSON.stringify(added));
+  localStorage.setItem('ncu_deleted', JSON.stringify(deleted));
+}
+
+// 合併預設 + 使用者新增，扣掉已刪除
+function getEffectiveRestaurants() {
+  const { added, deleted } = loadUserData();
+  const deletedSet = new Set(deleted);
+  return [...restaurants, ...added].filter(r => !deletedSet.has(r.name));
+}
+
+// ── 讓 decideAll / getCandidates / pickThis 使用動態清單 ──
+function decideAll() {
+  lastCandidates = getEffectiveRestaurants();
+  shownHistory = [];
+  const picked = pickRandom(lastCandidates, []);
+  shownHistory.push(picked.name);
+  showRestaurant(picked, "🎲 隨機替你選的！");
+}
+function decide() {
+  lastCandidates = getCandidates();
+  shownHistory = [];
+  if (lastCandidates.length === 0) { showEmpty(); return; }
+  const picked = pickRandom(lastCandidates, []);
+  shownHistory.push(picked.name);
+  showRestaurant(picked, "今天就吃這家吧 👇");
+}
+function getCandidates() {
+  return getEffectiveRestaurants().filter(r => {
+    const catMatch = selectedCategories.size === 0
+      || r.category.some(c => selectedCategories.has(c));
+    if (!catMatch) return false;
+    if (activeFilters.has("cheap") && !r.cheap) return false;
+    if (activeFilters.has("night") && !r.night) return false;
+    return true;
+  });
+}
+
+// ── Modal ──
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  switchTab('add');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+function switchTab(tab) {
+  document.querySelectorAll('.modal-tab').forEach((t, i) =>
+    t.classList.toggle('active', (i === 0) === (tab === 'add')));
+  document.getElementById('tab-add').classList.toggle('active', tab === 'add');
+  document.getElementById('tab-list').classList.toggle('active', tab === 'list');
+  if (tab === 'list') renderManageList();
+}
+
+// 建立新增表單的類型 checkboxes
+function buildFormCats() {
+  const container = document.getElementById('f-cats');
+  container.innerHTML = categories.map(c =>
+    `<label class="cat-check-label">
+      <input type="checkbox" name="fcat" value="${c.id}"> ${c.icon} ${c.label}
+    </label>`
+  ).join('');
+}
+buildFormCats();
+
+// 新增送出
+function submitAdd() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('請輸入店名！'); return; }
+  const cats = [...document.querySelectorAll('#f-cats input:checked')].map(i => i.value);
+  if (cats.length === 0) { alert('請至少選一個類型！'); return; }
+
+  const { added, deleted } = loadUserData();
+  const all = [...restaurants, ...added];
+  if (all.some(r => r.name === name)) { alert(`「${name}」已經在資料庫裡了！`); return; }
+
+  const newR = {
+    name,
+    category: cats,
+    location: document.getElementById('f-location').value.trim() || '中大附近',
+    price:    document.getElementById('f-price').value.trim()    || '未知',
+    hours:    document.getElementById('f-hours').value.trim()    || '未知',
+    note:     document.getElementById('f-note').value.trim()     || '',
+    tags:     [
+      ...(document.getElementById('f-cheap').checked ? ['便宜'] : []),
+      ...(document.getElementById('f-night').checked ? ['宵夜'] : []),
+    ],
+    cheap: document.getElementById('f-cheap').checked,
+    quick: false,
+    night: document.getElementById('f-night').checked,
+    _userAdded: true,
+  };
+  added.push(newR);
+  saveUserData(added, deleted);
+
+  // 清空表單
+  ['f-name','f-location','f-price','f-hours','f-note'].forEach(id =>
+    document.getElementById(id).value = '');
+  document.querySelectorAll('#f-cats input, #f-cheap, #f-night')
+    .forEach(i => i.checked = false);
+
+  alert(`「${name}」已新增！`);
+}
+
+// 刪除店家
+function deleteRestaurant(name) {
+  if (!confirm(`確定要刪除「${name}」嗎？`)) return;
+  const { added, deleted } = loadUserData();
+  // 如果是使用者新增的，直接從 added 移除；否則加進 deleted 黑名單
+  const newAdded = added.filter(r => r.name !== name);
+  const isBase = restaurants.some(r => r.name === name);
+  const newDeleted = isBase ? [...deleted, name] : deleted;
+  saveUserData(newAdded, newDeleted);
+  renderManageList();
+}
+
+// 渲染店家列表
+function renderManageList() {
+  const keyword = (document.getElementById('manage-search')?.value || '').trim().toLowerCase();
+  const { added, deleted } = loadUserData();
+  const deletedSet = new Set(deleted);
+  const all = [...restaurants, ...added]
+    .filter(r => !deletedSet.has(r.name))
+    .filter(r => !keyword || r.name.toLowerCase().includes(keyword));
+
+  document.getElementById('manage-list').innerHTML = all.length === 0
+    ? '<p style="color:#bbb;text-align:center;padding:20px 0">找不到符合的店家</p>'
+    : all.map(r => `
+      <div class="manage-item ${r._userAdded ? 'user-added' : ''}">
+        <div class="manage-item-info">
+          <div class="manage-item-name">${r.name}</div>
+          <div class="manage-item-meta">${r.category.join('・')} ｜ ${r.location}</div>
+        </div>
+        ${r._userAdded ? '<span class="manage-item-badge">自新增</span>' : ''}
+        <button class="btn-delete" onclick="deleteRestaurant('${r.name.replace(/'/g, "\\'")}')">刪除</button>
+      </div>`
+    ).join('');
+}
+</script>
+
+</body>
+</html>
